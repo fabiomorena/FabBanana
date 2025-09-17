@@ -9,6 +9,8 @@ This repository contains a set of Python scripts and a GUI application that leve
 * **Image Restoration**: A script for restoring old or damaged photos, removing scratches and fading.
 * **Multi-Image Processing**: A sample script demonstrating how to combine two or more images into a cohesive scene.
 * **Conversational Image Editing**: An interactive chat mode where the user can continuously provide instructions to edit an image.
+* **Product Mockups**: A script to create photorealistic product mockups by placing a product image into a different scene.
+* **Marketing Asset Creation**: A script to transform product images into compelling marketing assets by adding text and graphics.
 
 ## Prerequisites
 
@@ -16,10 +18,7 @@ Before use, ensure the following components are installed:
 
 * **Python**: Version 3.13 or higher is recommended.
 * **Google API Key**: An API key for the Google Generative AI API is required and must be set as an environment variable `GOOGLE_API_KEY`.
-
-* Source : **https://dev.to/googleai/how-to-build-with-nano-banana-complete-developer-tutorial-646**
-
-
+* https://dev.to/googleai/how-to-build-with-nano-banana-complete-developer-tutorial-646
 ## Installation
 
 1.  **Clone the repository (if applicable)**:
@@ -52,4 +51,3 @@ Run the main script to launch the graphical user interface:
 
 ```bash
 python nano_banana_gui.py
-
