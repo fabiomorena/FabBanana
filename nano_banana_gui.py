@@ -5,15 +5,19 @@ import threading
 import google.generativeai as genai
 from PIL import Image, ImageTk
 from io import BytesIO
-import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
+import customtkinter as ctk
+
+# Setzt das Standard-Erscheinungsbild und das Farbschema
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
 
 
-class NanoBananaGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("🍌 NanoBanana AI Image Studio")
-        self.root.geometry("1200x800")
+class NanoBananaGUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("🍌 NanoBanana AI Image Studio")
+        self.geometry("1200x800")
 
         # API Key Status
         self.api_key = os.environ.get("GOOGLE_API_KEY", "")
@@ -42,57 +46,26 @@ class NanoBananaGUI:
                 print(f"Modell-Setup Fehler: {e}")
 
     def setup_gui(self):
-        """Erstellt die Haupt-GUI"""
+        """Erstellt die Haupt-GUI mit CustomTkinter"""
 
-        # <<< KORRIGIERT: Die Zeile, die den Fehler verursacht hat, wurde entfernt.
-        #                Wir konfigurieren den Style nun direkt. >>>
-        self.root.style.configure('.', font=('', 11), foreground='#bdc3c7')
-        self.root.style.configure('TLabel', foreground='#bdc3c7')
-        self.root.style.configure('TButton', foreground='#bdc3c7')
-        self.root.style.configure('TCombobox', foreground='#bdc3c7')
-        # <<< ENDE KORRIGIERTER CODE >>>
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        header_frame = ttk.Frame(self.root, bootstyle="dark", height=60)
-        header_frame.pack(fill='x')
-        header_frame.pack_propagate(False)
+        control_frame = ctk.CTkFrame(self, width=250, corner_radius=10)
+        control_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ns")
 
-        title_label = ttk.Label(
-            header_frame, text="🍌 NanoBanana AI Image Studio", font=('Arial', 20, 'bold'),
-            bootstyle="inverse-dark"
-        )
-        title_label.pack(pady=10)
+        workspace_frame = ctk.CTkFrame(self, corner_radius=10)
+        workspace_frame.grid(row=0, column=1, padx=(0, 10), pady=10, sticky="nsew")
+        workspace_frame.grid_rowconfigure(1, weight=1)
+        workspace_frame.grid_columnconfigure(0, weight=1)
 
-        self.status_var = tk.StringVar(value="Bereit")
-        status_bar = ttk.Label(
-            self.root, textvariable=self.status_var, bootstyle="inverse-secondary",
-            anchor=tk.W
-        )
-        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        title_label = ctk.CTkLabel(control_frame, text="🍌 NanoBanana", font=ctk.CTkFont(size=20, weight="bold"))
+        title_label.pack(pady=20, padx=20)
 
-        main_frame = ttk.Frame(self.root)
-        main_frame.pack(fill='both', expand=True, padx=10, pady=5)
-
-        status_frame = ttk.Frame(main_frame)
-        status_frame.pack(fill='x', padx=10, pady=5)
-
-        api_status = "✓ Verbunden" if self.api_key else "✗ Nicht verbunden"
-        status_style = "success" if self.api_key else "danger"
-        ttk.Label(
-            status_frame, text=f"API Status: {api_status}", font=('Arial', 10),
-            bootstyle=status_style
-        ).pack(side='left')
-
-        control_frame = ttk.Frame(main_frame, bootstyle="dark", width=300)
-        control_frame.pack(side='left', fill='y', padx=(0, 10))
-        control_frame.pack_propagate(False)
-
-        ttk.Label(
-            control_frame, text="Funktion", font=('Arial', 14, 'bold'),
-            bootstyle="inverse-dark"
-        ).pack(pady=10)
-
+        # NEUE FUNKTION HIER HINZUGEFÜGT
         functions = [
             ("Bild bearbeiten", self.edit_image_mode),
+            ("Objekt entfernen", self.object_removal_mode),  # <-- NEU
             ("Hintergrund entfernen", self.remove_background_mode),
             ("Bild restaurieren", self.restore_image_mode),
             ("Stil übertragen", self.style_transfer_mode),
@@ -102,84 +75,39 @@ class NanoBananaGUI:
         ]
 
         for text, command in functions:
-            btn = ttk.Button(
-                control_frame,
-                text=text,
-                command=command,
-                bootstyle="secondary-outline"
-            )
+            btn = ctk.CTkButton(control_frame, text=text, command=command)
             btn.pack(fill='x', padx=10, pady=5)
 
-        ttk.Button(
-            control_frame,
-            text="Erstes Bild laden",
-            command=self.load_image,
-            bootstyle="success"
-        ).pack(fill='x', padx=10, pady=(10, 5))
+        ctk.CTkButton(control_frame, text="Erstes Bild laden", command=self.load_image, fg_color="#28a745",
+                      hover_color="#218838").pack(fill='x', padx=10, pady=(20, 5))
 
-        self.second_image_button = ttk.Button(
-            control_frame,
-            text="Zweites Bild laden (Mockup)",
-            command=self.load_second_image,
-            bootstyle="warning"
-        )
-        self.second_image_button.pack(fill='x', padx=10, pady=(5, 10))
-        self.second_image_button.pack_forget()
+        self.second_image_button = ctk.CTkButton(control_frame, text="Zweites Bild laden",
+                                                 command=self.load_second_image, fg_color="#ffc107",
+                                                 hover_color="#e0a800", text_color="black")
 
-        workspace_frame = ttk.Frame(main_frame)
-        workspace_frame.pack(side='right', fill='both', expand=True)
+        api_status = "✓ Verbunden" if self.api_key else "✗ Nicht verbunden"
+        api_color = "green" if self.api_key else "red"
+        api_status_label = ctk.CTkLabel(control_frame, text=f"API: {api_status}", text_color=api_color)
+        api_status_label.pack(side="bottom", pady=10)
 
-        prompt_frame = ttk.Frame(workspace_frame)
-        prompt_frame.pack(fill='x', padx=10, pady=10)
+        prompt_frame = ctk.CTkFrame(workspace_frame)
+        prompt_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        prompt_frame.grid_columnconfigure(0, weight=1)
 
-        ttk.Label(
-            prompt_frame, text="Prompt:", font=('Arial', 12, 'bold')
-        ).pack(anchor='w')
+        self.prompt_text = ctk.CTkTextbox(prompt_frame, height=100, corner_radius=8, font=("Arial", 14))
+        self.prompt_text.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-        self.prompt_text = scrolledtext.ScrolledText(
-            prompt_frame, height=4, font=('Arial', 11), wrap=tk.WORD
-        )
-        self.prompt_text.pack(fill='x', pady=5)
+        self.action_button = ctk.CTkButton(prompt_frame, text="🚀 Ausführen", command=self.execute_action, height=40,
+                                           font=ctk.CTkFont(size=14, weight="bold"))
+        self.action_button.grid(row=0, column=1, padx=10, pady=5)
 
-        self.action_button = ttk.Button(
-            prompt_frame,
-            text="🚀 Ausführen",
-            command=self.execute_action,
-            bootstyle="primary"
-        )
-        self.action_button.pack(pady=10)
+        image_frame = ctk.CTkScrollableFrame(workspace_frame, label_text="Bildvorschau")
+        image_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
 
-        image_canvas = tk.Canvas(workspace_frame, bg='#bdc3c7')
-        image_scrollbar = ttk.Scrollbar(workspace_frame, orient="vertical", command=image_canvas.yview)
-        scrollable_frame = ttk.Frame(image_canvas)
+        self.image_label = ctk.CTkLabel(image_frame, text="Kein Bild geladen")
+        self.image_label.pack(fill='both', expand=True, padx=10, pady=10)
 
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: image_canvas.configure(
-                scrollregion=image_canvas.bbox("all")
-            )
-        )
-
-        image_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        image_canvas.configure(yscrollcommand=image_scrollbar.set)
-
-        image_scrollbar.pack(side="right", fill="y")
-        image_canvas.pack(side="left", fill="both", expand=True, padx=10, pady=(0, 10))
-
-        ttk.Label(
-            scrollable_frame, text="Bildvorschau", font=('Arial', 12, 'bold')
-        ).pack(anchor='w', padx=5, pady=5)
-
-        self.image_label = ttk.Label(
-            scrollable_frame, text="Kein Bild geladen", bootstyle="inverse-light"
-        )
-        self.image_label.pack(fill='both', expand=True, padx=10, pady=(0, 10))
-
-        self.second_image_label = ttk.Label(
-            scrollable_frame, text="Zweites Bild: Nicht geladen", bootstyle="inverse-light"
-        )
-        self.second_image_label.pack(fill='both', expand=True, padx=10, pady=(0, 10))
-        self.second_image_label.pack_forget()
+        self.second_image_label = ctk.CTkLabel(image_frame, text="")
 
     def load_image(self):
         file_path = filedialog.askopenfilename(
@@ -190,12 +118,8 @@ class NanoBananaGUI:
             try:
                 self.current_image = Image.open(file_path)
                 self.current_image_path = file_path
-                preview = self.current_image.copy()
-                preview.thumbnail((400, 300))
-                photo = ImageTk.PhotoImage(preview)
-                self.image_label.configure(image=photo, text="")
-                self.image_label.image = photo
-                self.status_var.set(f"Erstes Bild geladen: {os.path.basename(file_path)}")
+                ctk_image = ctk.CTkImage(light_image=self.current_image, size=(400, 300))
+                self.image_label.configure(image=ctk_image, text="")
             except Exception as e:
                 messagebox.showerror("Fehler", f"Bild konnte nicht geladen werden:\n{e}")
 
@@ -208,12 +132,8 @@ class NanoBananaGUI:
             try:
                 self.second_image = Image.open(file_path)
                 self.second_image_path = file_path
-                preview = self.second_image.copy()
-                preview.thumbnail((400, 300))
-                photo = ImageTk.PhotoImage(preview)
-                self.second_image_label.configure(image=photo, text="")
-                self.second_image_label.image = photo
-                self.status_var.set(f"Zweites Bild geladen: {os.path.basename(file_path)}")
+                ctk_image = ctk.CTkImage(light_image=self.second_image, size=(400, 300))
+                self.second_image_label.configure(image=ctk_image, text="")
             except Exception as e:
                 messagebox.showerror("Fehler", f"Bild konnte nicht geladen werden:\n{e}")
 
@@ -221,7 +141,7 @@ class NanoBananaGUI:
         if not self.model:
             messagebox.showerror("Fehler", "Keine API-Verbindung! Bitte API-Key setzen.")
             return
-        prompt = self.prompt_text.get("1.0", tk.END).strip()
+        prompt = self.prompt_text.get("1.0", "end-1c").strip()
         if not prompt:
             messagebox.showerror("Fehler", "Bitte geben Sie einen Prompt ein!")
             return
@@ -237,23 +157,19 @@ class NanoBananaGUI:
                 return
             images_to_send = [self.current_image]
 
-        self.action_button.configure(state='disabled')
-        self.status_var.set("Verarbeite... Bitte warten...")
-
+        self.action_button.configure(state='disabled', text="Verarbeite...")
         threading.Thread(target=self.api_call_thread, args=(prompt, images_to_send), daemon=True).start()
 
     def api_call_thread(self, prompt, images):
-        """Führt den API-Aufruf im Hintergrund aus."""
         try:
             response = self.model.generate_content([prompt] + images)
-            self.root.after(0, self.handle_response, response)
+            self.after(0, self.handle_response, response)
         except Exception as e:
-            self.root.after(0, self.handle_error, e)
+            self.after(0, self.handle_error, e)
         finally:
-            self.root.after(0, lambda: self.action_button.configure(state='normal'))
+            self.after(0, lambda: self.action_button.configure(state='normal', text="🚀 Ausführen"))
 
     def handle_response(self, response):
-        """Verarbeitet die API-Antwort auf dem Haupt-Thread."""
         image_found = False
         try:
             for candidate in response.candidates:
@@ -261,96 +177,72 @@ class NanoBananaGUI:
                     if part.inline_data and part.inline_data.mime_type.startswith("image/"):
                         image_data = part.inline_data.data
                         result_image = Image.open(BytesIO(image_data))
-
                         save_path = filedialog.asksaveasfilename(
                             defaultextension=".png",
                             filetypes=[("PNG Dateien", "*.png"), ("Alle Dateien", "*.*")]
                         )
-
                         if save_path:
                             result_image.save(save_path)
-                            self.status_var.set(f"Bild gespeichert: {os.path.basename(save_path)}")
                             messagebox.showinfo("Erfolg", f"Bild erfolgreich gespeichert!\n{save_path}")
-                        else:
-                            self.status_var.set("Speichern abgebrochen.")
-
                         image_found = True
                         break
                 if image_found:
                     break
         except Exception as e:
-            self.status_var.set("Fehler bei der Antwortverarbeitung.")
             messagebox.showerror("Fehler", f"Fehler bei der Verarbeitung der API-Antwort:\n{e}")
 
         if not image_found:
-            self.status_var.set("Es wurden keine Bilddaten in der Antwort des Modells gefunden.")
+            messagebox.showwarning("Kein Bild", "Es wurden keine Bilddaten in der Antwort des Modells gefunden.")
 
     def handle_error(self, error):
-        """Behandelt Fehler auf dem Haupt-Thread."""
-        self.status_var.set("Fehler bei der Verarbeitung.")
         messagebox.showerror("Fehler", f"Verarbeitung fehlgeschlagen:\n{error}")
 
+    def set_mode(self, mode, prompt_text, show_second_image=False):
+        self.current_mode = mode
+        self.prompt_text.delete("1.0", "end")
+        self.prompt_text.insert("1.0", prompt_text)
+
+        if show_second_image:
+            self.second_image_button.pack(fill='x', padx=10, pady=(5, 10))
+            self.second_image_label.pack(fill='both', expand=True, padx=10, pady=10)
+        else:
+            self.second_image_button.pack_forget()
+            self.second_image_label.pack_forget()
+            self.second_image = None
+            self.second_image_label.configure(image=None)
+
     def edit_image_mode(self):
-        self.current_mode = "edit"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Bearbeite das Bild gemäß der Beschreibung. Verbessere die Qualität und passe den Stil an.")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
+        self.set_mode("edit",
+                      "Bearbeite das Bild gemäß der Beschreibung. Verbessere die Qualität und passe den Stil an.")
+
+    # NEUE METHODE HIER HINZUGEFÜGT
+    def object_removal_mode(self):  # <-- NEU
+        self.set_mode("object_removal",
+                      "Beschreibe das Objekt, das du entfernen möchtest, so präzise wie möglich. Beispiel: 'Entferne den umgefallenen Pappbecher auf dem Bürgersteig'.")
 
     def remove_background_mode(self):
-        self.current_mode = "remove_background"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Entferne den Hintergrund vollständig und mache ihn transparent. Behalte nur das Hauptmotiv.")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
+        self.set_mode("remove_background",
+                      "Entferne den Hintergrund vollständig und mache ihn transparent. Behalte nur das Hauptmotiv.")
 
     def restore_image_mode(self):
-        self.current_mode = "restore"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Restauriere dieses alte/beschädigte Foto. Entferne Kratzer, Staub und Verblassungen. Verbessere Farben und Details.")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
+        self.set_mode("restore", "Restauriere dieses alte/beschädigte Foto. Entferne Kratzer und verbessere Farben.")
 
     def style_transfer_mode(self):
-        self.current_mode = "style_transfer"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Übertrage den Stil eines Kunstwerks auf dieses Bild. Erhalte die grundlegende Komposition bei.")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
+        self.set_mode("style_transfer", "Übertrage den Stil eines Kunstwerks auf dieses Bild.")
 
     def chat_mode(self):
-        self.current_mode = "chat"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0", "Interaktiver Modus: Gib eine spezifische Bearbeitungsanweisung ein...")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
+        self.set_mode("chat", "Interaktiver Modus: Gib eine spezifische Bearbeitungsanweisung ein...")
 
     def product_mockup_mode(self):
-        self.current_mode = "product_mockup"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Erstelle ein fotorealistisches Produkt-Mockup, indem du das Produkt aus dem ersten Bild nahtlos in die Szene des zweiten Bildes einfügst.")
-        self.second_image_button.pack(fill='x', padx=10, pady=(5, 10))
-        self.second_image_label.pack(fill='both', expand=True, padx=10, pady=(0, 10))
+        self.set_mode("product_mockup",
+                      "Erstelle ein fotorealistisches Produkt-Mockup, indem du das Produkt aus dem ersten Bild nahtlos in die Szene des zweiten Bildes einfügst.",
+                      show_second_image=True)
 
     def marketing_asset_mode(self):
-        self.current_mode = "marketing_asset"
-        self.prompt_text.delete("1.0", tk.END)
-        self.prompt_text.insert("1.0",
-                                "Verwandle dieses Produktbild in ein ansprechendes Marketing-Asset für soziale Medien. Füge einen aussagekräftigen Text-Slogan und passende Grafiken hinzu.")
-        self.second_image_button.pack_forget()
-        self.second_image_label.pack_forget()
-
-
-def main():
-    root = ttk.Window(themename="darkly")
-    app = NanoBananaGUI(root)
-    root.mainloop()
+        self.set_mode("marketing_asset",
+                      "Verwandle dieses Produktbild in ein ansprechendes Marketing-Asset für soziale Medien.")
 
 
 if __name__ == "__main__":
-    main()
+    app = NanoBananaGUI()
+    app.mainloop()
