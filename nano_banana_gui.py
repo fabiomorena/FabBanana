@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox
 import os
 import threading
 import google.generativeai as genai
-from PIL import Image
+from PIL import Image, ImageOps
 from io import BytesIO
 import customtkinter as ctk
 import glob
@@ -35,6 +35,7 @@ class AppTheme:
     ACCENT_HOVER = "#797C80"
     ACCENT_BORDER = "#A0A3A7"
     TEXT_COLOR = "#F5F5F5"
+    IMAGE_BORDER_COLOR = "#FFFFFF"
     API_STATUS_CONNECTED = "#32CD32"
     API_STATUS_DISCONNECTED = "#FF6347"
 
@@ -42,7 +43,7 @@ class AppTheme:
 class NanoBananaGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("🍌 NanoBanana AI Image Studio (Final - Repariert)")
+        self.title("🍌 NanoBanana AI Image Studio (Final)")
         self.geometry("1200x800")
         self.configure(fg_color=AppTheme.BACKGROUND)
 
@@ -85,20 +86,13 @@ class NanoBananaGUI(ctk.CTk):
         title_label.pack(pady=20, padx=20)
 
         functions = [
-            ("Text zu Bild", self.text_to_image_mode),
-            ("Bild erweitern (Outpaint)", self.uncropping_mode),
-            ("Avatar erstellen", self.avatar_mode),
-            ("Bild bearbeiten", self.edit_image_mode),
-            ("Objekt entfernen", self.object_removal_mode),
-            ("Hintergrund entfernen", self.remove_background_mode),
-            ("Bild restaurieren", self.restore_image_mode),
-            ("Bild hochskalieren", self.upscaling_mode),
-            ("Wasserzeichen hinzufügen", self.watermark_mode),
-            ("Stil übertragen", self.style_transfer_mode),
-            ("Chat-Modus", self.chat_mode),
-            ("Produkt-Mockup", self.product_mockup_mode),
-            ("Marketing-Asset", self.marketing_asset_mode),
-            ("Stapelverarbeitung", self.batch_mode),
+            ("Text zu Bild", self.text_to_image_mode), ("Bild erweitern (Outpaint)", self.uncropping_mode),
+            ("Avatar erstellen", self.avatar_mode), ("Bild bearbeiten", self.edit_image_mode),
+            ("Objekt entfernen", self.object_removal_mode), ("Hintergrund entfernen", self.remove_background_mode),
+            ("Bild restaurieren", self.restore_image_mode), ("Bild hochskalieren", self.upscaling_mode),
+            ("Wasserzeichen hinzufügen", self.watermark_mode), ("Stil übertragen", self.style_transfer_mode),
+            ("Chat-Modus", self.chat_mode), ("Produkt-Mockup", self.product_mockup_mode),
+            ("Marketing-Asset", self.marketing_asset_mode), ("Stapelverarbeitung", self.batch_mode),
         ]
 
         for text, command in functions:
@@ -143,7 +137,8 @@ class NanoBananaGUI(ctk.CTk):
 
         self.image_frame = ctk.CTkScrollableFrame(workspace_frame, label_text="Vorschau",
                                                   label_font=(AppFont.FAMILY, AppFont.MAIN_SIZE),
-                                                  fg_color="transparent")
+                                                  fg_color="transparent", border_width=1,
+                                                  border_color=AppTheme.BUTTON_BORDER)
         self.image_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
 
         self.image_label = ctk.CTkLabel(self.image_frame, text="Hier erscheint das generierte Bild",
@@ -152,10 +147,12 @@ class NanoBananaGUI(ctk.CTk):
         self.second_image_label = ctk.CTkLabel(self.image_frame, text="")
 
     def display_image_with_aspect_ratio(self, pil_image, image_label, max_w=600, max_h=450):
-        img_w, img_h = pil_image.size
+        pil_image_with_border = ImageOps.expand(pil_image, border=2, fill=AppTheme.IMAGE_BORDER_COLOR)
+
+        img_w, img_h = pil_image_with_border.size
         ratio = min(max_w / img_w, max_h / img_h)
         new_w, new_h = int(img_w * ratio), int(img_h * ratio)
-        ctk_image = ctk.CTkImage(light_image=pil_image, size=(new_w, new_h))
+        ctk_image = ctk.CTkImage(light_image=pil_image_with_border, size=(new_w, new_h))
         image_label.configure(image=ctk_image, text="")
 
     def load_image(self):
@@ -242,14 +239,8 @@ class NanoBananaGUI(ctk.CTk):
         messagebox.showerror("API Fehler", f"Verarbeitung fehlgeschlagen:\n{error}")
 
     def set_action_button_text(self):
-        """Setzt den Text des Action-Buttons basierend auf dem aktuellen Modus."""
-        mode_texts = {
-            "text_to_image": "Generieren",
-            "uncropping": "Erweitern",
-            "avatar": "Erstellen",
-            "watermark": "Hinzufügen",
-            "batch": "Ordner auswählen..."
-        }
+        mode_texts = {"text_to_image": "Generieren", "uncropping": "Erweitern", "avatar": "Erstellen",
+                      "watermark": "Hinzufügen", "batch": "Ordner auswählen..."}
         text = mode_texts.get(self.current_mode, "Ausführen")
         self.action_button.configure(state='normal', text=f"🚀 {text}")
 
