@@ -1,5 +1,3 @@
-Of course\! It's a great idea to keep the documentation updated with the app's growing capabilities. Here is the updated and complete `README.md` file, including all the new features we've implemented.
-
 -----
 
 # 🍌 NanoBanana AI Image Studio
