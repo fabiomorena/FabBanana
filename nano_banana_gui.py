@@ -80,7 +80,7 @@ class NanoBananaGUI(ctk.CTk):
         workspace_frame.grid_rowconfigure(1, weight=1)
         workspace_frame.grid_columnconfigure(0, weight=1)
 
-        title_label = ctk.CTkLabel(control_frame, text="🍌 NanoBanana",
+        title_label = ctk.CTkLabel(control_frame, text="🍌 FabBanana",
                                    font=(AppFont.FAMILY, AppFont.TITLE_SIZE, AppFont.WEIGHT_BOLD),
                                    text_color=AppTheme.TEXT_COLOR)
         title_label.pack(pady=20, padx=20)
