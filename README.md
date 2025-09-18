@@ -76,3 +76,7 @@ Run the main script to launch the graphical user interface:
 ```bash
 python nano_banana_gui.py
 ```
+
+## Appearance
+
+![img.png](img.png)
